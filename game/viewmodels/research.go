@@ -130,7 +130,7 @@ func (r *researchLabVM) Manufacturing(ctx *debugui.Context, w donburi.World, lab
 					Start: start,
 					End:   end,
 				})
-				components.TaskCreateEvent.Publish(w, *tasks.NewResearchTask(w, "Research Machine Shop", 120, 7, 1))
+				components.TaskCreateEvent.Publish(w, *tasks.NewResearchTask(w, "Research Machine Shop", 120, 7, 1, components.Construction))
 			}
 		}
 

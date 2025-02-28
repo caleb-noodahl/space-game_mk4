@@ -30,7 +30,7 @@ build with:
 
 ### Machine Shop
 
-  [TBD]
+  Consumes materials and generates new materials and components depending on research level and available employees.
 
 ### Docks
 
@@ -44,12 +44,13 @@ build with:
 
 - [x] Gamestate persistence
 - [x] POC User Profile state and simple auth
-- [x] Employee Marketplace poc with multi-tenant consistency
+- [x] Employee Marketplace poc with consistency across all clients
 - [x] Employee tasks and XP gain
 - [x] Auto complete quests based on world state
 - [x] Wallet transactions 
 - [x] Debug UI 
 - [x] Research system poc
+- [x] Basic quest system poc 
 
 ## Currently tinkering with
 

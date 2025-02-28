@@ -3,14 +3,17 @@ package hooks
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"space-game_mk4/game/components"
 	"slices"
+	"space-game_mk4/game/components"
+	"strings"
 	"time"
 
 	"github.com/cockroachdb/pebble"
 	mqtt "github.com/mochi-mqtt/server/v2"
 	"github.com/mochi-mqtt/server/v2/packets"
+	"github.com/mochi-mqtt/server/v2/system"
 	"github.com/samber/lo"
 )
 
@@ -21,7 +24,8 @@ type MarketHookOptions struct {
 
 type MarketHook struct {
 	mqtt.HookBase
-	config *MarketHookOptions
+	config  *MarketHookOptions
+	nextPub int64
 }
 
 func (h *MarketHook) ID() string {
@@ -48,9 +52,74 @@ func (h *MarketHook) Init(config any) error {
 	}) {
 		return mqtt.ErrInvalidConfigType
 	}
-	h.config.Server.Subscribe("markets/+/buy", 3, h.MarketsBuy)
-	h.config.Server.Subscribe("markets/+/sell", 4, h.MarketsSell)
+	h.config.Server.Subscribe("markets/+/view", 3, h.MarketsList)
+	h.config.Server.Subscribe("markets/+/buy", 4, h.MarketsBuy)
+	h.config.Server.Subscribe("markets/+/sell", 5, h.MarketsSell)
+
+	// instantiating the market persistence so pebble.db doesn't get so upset when we ask for nonexistent things
+	for _, market := range []string{
+		"materials", "components", "employees",
+	} {
+		//insert the sells stub
+		if _, closer, err := h.config.DB.Get([]byte("markets/" + market + "/sells")); err != nil {
+			if errors.Is(err, pebble.ErrNotFound) {
+				data, err := json.Marshal([]components.Order[components.Material]{})
+				if err != nil {
+					panic(err)
+				}
+				if err := h.config.DB.Set([]byte("markets/"+market+"/sells"), data, pebble.Sync); err != nil {
+					panic(err)
+				}
+			}
+		} else {
+			closer.Close()
+		}
+		// insert the buys stub
+		if _, closer, err := h.config.DB.Get([]byte("markets/" + market + "/buys")); err != nil {
+			if errors.Is(err, pebble.ErrNotFound) {
+				data, err := json.Marshal([]components.Order[components.Material]{})
+				if err != nil {
+					panic(err)
+				}
+				if err := h.config.DB.Set([]byte("markets/"+market+"/sells"), data, pebble.Sync); err != nil {
+					panic(err)
+				}
+			}
+		} else {
+			closer.Close()
+		}
+	}
 	return nil
+}
+
+func (h *MarketHook) MarketsList(cl *mqtt.Client, sub packets.Subscription, pk packets.Packet) {
+	topic := strings.Split(pk.TopicName, "/")[1]
+
+	sellsbytes, closer, err := h.config.DB.Get([]byte("markets/" + topic + "/sells"))
+	if err != nil {
+		if errors.Is(err, pebble.ErrNotFound) {
+			h.config.Server.Log.Debug("gamestate not found:", string(pk.Payload))
+		} else {
+			h.config.Server.Log.Error("error fetching topic sells ", topic)
+			return
+		}
+
+	}
+	closer.Close()
+	if err := h.config.Server.Publish("markets/"+topic+"/buys", sellsbytes, false, 2); err != nil {
+		h.config.Server.Log.Error("unable to publish to topic: ", topic, err)
+		return
+	}
+
+	buysbytes, closer, err := h.config.DB.Get([]byte("markets/" + topic + "/buys"))
+	if err != nil {
+		h.config.Server.Log.Error("unable to fetch topic buys: ", topic)
+		return
+	}
+	defer closer.Close()
+	if err := h.config.Server.Publish("markets/"+topic+"/buys", buysbytes, false, 2); err != nil {
+		h.config.Server.Log.Error("unable to publish to topic: ", topic, err)
+	}
 }
 
 func (h *MarketHook) MarketsBuy(cl *mqtt.Client, sub packets.Subscription, pk packets.Packet) {
@@ -91,7 +160,7 @@ func MarketsSellOrder[T components.Material | components.Component](market strin
 	if err := json.Unmarshal(data, &req); err != nil {
 		return err
 	}
-	data, closer, err := db.Get([]byte(market + "/sells"))
+	data, closer, err := db.Get([]byte("markets/" + market + "/sells"))
 	if err != nil {
 		return err
 	}
@@ -106,7 +175,7 @@ func MarketsSellOrder[T components.Material | components.Component](market strin
 	if err != nil {
 		return err
 	}
-	return db.Set([]byte(market+"/sells"), sellbytes, pebble.Sync)
+	return db.Set([]byte("markets/"+market+"/sells"), sellbytes, pebble.Sync)
 }
 
 func MarketsBuyOrder[T components.Material | components.Component](market string, data []byte, server *mqtt.Server, db *pebble.DB) error {
@@ -115,7 +184,7 @@ func MarketsBuyOrder[T components.Material | components.Component](market string
 		return err
 	}
 	//first get sells to determine if order matches up
-	data, closer, err := db.Get([]byte(fmt.Sprintf("%s/sells", market)))
+	data, closer, err := db.Get([]byte("markets/" + market + "/buys"))
 	if err != nil {
 		return err
 	}
@@ -137,7 +206,7 @@ func MarketsBuyOrder[T components.Material | components.Component](market string
 		sells = append(sells[:index], sells[index:]...)
 		if sellbytes, err := json.Marshal(sells); err != nil {
 			return err
-		} else if err := db.Set([]byte(market+"/sells"), sellbytes, pebble.Sync); err != nil {
+		} else if err := db.Set([]byte("markets/"+market+"/sells"), sellbytes, pebble.Sync); err != nil {
 			return err
 		}
 		total := val.Amount * val.Price
@@ -154,18 +223,18 @@ func MarketsBuyOrder[T components.Material | components.Component](market string
 			return err
 		}
 		// publish the updated markets
-		return server.Publish(market+"/sells", sellbytes, false, 2)
+		return server.Publish("markets/"+market+"/sells", sellbytes, false, 2)
 	}
 	//otherwise we need to put up a buy order
 	buys := []components.Order[T]{}
-	buybytes, closer, err := db.Get([]byte(market + "/buys"))
+	buybytes, closer, err := db.Get([]byte("markets/" + market + "/buys"))
 	if err != nil {
 		return err
 	} else if err := json.Unmarshal(buybytes, &buys); err != nil {
 		return err
 	} else {
 		buys = append(buys, req)
-		if err := db.Set([]byte(market+"/buys"), buybytes, pebble.Sync); err != nil {
+		if err := db.Set([]byte("markets/"+market+"/buys"), buybytes, pebble.Sync); err != nil {
 			return err
 		}
 	}
@@ -193,10 +262,6 @@ func AddPendingTX(from, to string, price, due int64, server *mqtt.Server, db *pe
 		return err
 	}
 	return db.Set([]byte(to+"/wallet"), update, pebble.Sync)
-}
-
-func (h *MarketHook) MarketsMaterialSell(cl *mqtt.Client, sub packets.Subscription, pk packets.Packet) {
-
 }
 
 // todo refactor
@@ -308,4 +373,17 @@ func FetchMarket[T components.Component | components.Material](market string, db
 	}
 	defer closer.Close()
 	return out, json.Unmarshal(data, &out)
+}
+
+func (h *MarketHook) OnSysInfoTick(info *system.Info) {
+	if h.nextPub <= info.Time {
+		sells, closer, err := h.config.DB.Get([]byte("markets/materials/sells"))
+		if err != nil {
+			h.config.Server.Log.Error("unable to fetch market sells ", err)
+			return
+		}
+		closer.Close()
+		h.config.Server.Publish("markets/materials/sells", sells, false, 2)
+		h.nextPub = info.Time + 10
+	}
 }

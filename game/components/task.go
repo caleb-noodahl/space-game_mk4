@@ -15,6 +15,7 @@ const (
 
 type TaskData struct {
 	Type                 TaskType                  `json:"type"`
+	Item                 any                       `json:"any"`
 	Difficulty           int                       `json:"difficulty"`
 	Gate                 int                       `json:"gate"`
 	Level                int                       `json:"level"`

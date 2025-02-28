@@ -41,6 +41,8 @@ func (a *auth) MQTTLoginHandler(w donburi.World, e components.UserProfileData) {
 	client.Client.Subscribe("gamestate/time", GameState.SystemTimeEventHandler)
 	client.Client.Subscribe("profiles/"+e.Username, GameState.ProfileMessageEventHandler)
 	client.Client.Subscribe("markets/employees", Markets.MarketsEmployeesEventHandler)
+	client.Client.Subscribe("markets/+/buys", Markets.MarketsBuysHandler)
+	client.Client.Subscribe("markets/+/sells", Markets.MarketsSellsHandler)
 
 	components.MQTT.Set(components.MQTT.MustFirst(w), client)
 	components.LoginEvent.Unsubscribe(w, a.MQTTLoginHandler)

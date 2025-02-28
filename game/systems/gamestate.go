@@ -146,9 +146,9 @@ func (s *gamestate) GameStateMessageEvent(client mqtt.Client, msg mqtt.Message) 
 
 		case components.ResearchTask:
 			tmp := gsd.EmployeeTasks[i]
-			tmplvl := 1
-			//todo parse the tmp level
-			components.Task.Set(s.World.Entry(emp), tasks.NewResearchTask(s.World, tmp.Name, tmp.Duration, tmp.Difficulty, tmplvl))
+			tmplvl := 1 //todo parse the tmp level
+
+			components.Task.Set(s.World.Entry(emp), tasks.NewResearchTask(s.World, tmp.Name, tmp.Duration, tmp.Difficulty, tmplvl, tmp.Item.(components.ResearchType)))
 		}
 	}
 

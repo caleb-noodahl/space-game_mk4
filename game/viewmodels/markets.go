@@ -41,5 +41,39 @@ func (m *marketsVM) EmployeeMarket(ctx *debugui.Context, w donburi.World) {
 }
 
 func (m *marketsVM) MarketsSummary(ctx *debugui.Context, w donburi.World) {
-	
+	ctx.Window("Market Summary", image.Rect(40, 240, 560, 560), func(res debugui.Response, layout debugui.Layout) {
+		if entry, ok := components.ComponentMarket.First(w); ok {
+			mkt := components.ComponentMarket.Get(entry)
+			ctx.SetLayoutRow([]int{128}, 20)
+			ctx.Label("Components Market")
+
+			ctx.SetLayoutRow([]int{64, 128, 64, 128}, 20)
+			ctx.Label("Buys")
+			ctx.Label(fmt.Sprintf("%v", len(mkt.Buys)))
+			ctx.Label("Sells")
+			ctx.Label(fmt.Sprintf("%v", len(mkt.Sells)))
+		}
+		if entry, ok := components.MaterialMarket.First(w); ok {
+			mkt := components.MaterialMarket.Get(entry)
+			ctx.SetLayoutRow([]int{128}, 20)
+			ctx.Label("Materials Market")
+
+			ctx.SetLayoutRow([]int{64, 128, 64, 128}, 20)
+			ctx.Label("Buys")
+			ctx.Label(fmt.Sprintf("%v", len(mkt.Buys)))
+
+			ctx.TreeNode("Sells", func(res debugui.Response) {
+				ctx.SetLayoutRow([]int{64, 64, 128}, 20)
+				ctx.Label("Name")
+				ctx.Label("Amount")
+				ctx.Label("Price Per")
+				for _, sell := range mkt.Sells {
+					ctx.Label(string(sell.Item))
+					ctx.Label(fmt.Sprintf("%v", sell.Amount))
+					ctx.Label(fmt.Sprintf("%v", money.New(sell.Price, money.USD).Display()))
+				}
+			})
+		}
+
+	})
 }

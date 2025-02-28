@@ -23,6 +23,56 @@ var Markets *markets = &markets{
 	systemMarketID: "market:aadac5ac-b17e-40cd-a345-bb94e024ce15",
 }
 
+func (m *markets) MarketsBuysHandler(client mqtt.Client, msg mqtt.Message) {
+	switch strings.Split(msg.Topic(), "/")[1] {
+	case "materials":
+		orders := []components.Order[components.Material]{}
+		if err := json.Unmarshal(msg.Payload(), &orders); err != nil {
+			return //todo handle errors better
+		}
+		if entry, ok := components.MaterialMarket.First(m.World); ok {
+			mkt := components.MaterialMarket.Get(entry)
+			mkt.Buys = orders
+			components.MaterialMarket.Set(entry, mkt)
+		}
+	case "components":
+		orders := []components.Order[components.Component]{}
+		if err := json.Unmarshal(msg.Payload(), &orders); err != nil {
+			return //todo handle errors better
+		}
+		if entry, ok := components.ComponentMarket.First(m.World); ok {
+			mkt := components.ComponentMarket.Get(entry)
+			mkt.Buys = orders
+			components.ComponentMarket.Set(entry, mkt)
+		}
+	}
+}
+
+func (m *markets) MarketsSellsHandler(client mqtt.Client, msg mqtt.Message) {
+	switch strings.Split(msg.Topic(), "/")[1] {
+	case "materials":
+		orders := []components.Order[components.Material]{}
+		if err := json.Unmarshal(msg.Payload(), &orders); err != nil {
+			return //todo handle errors better
+		}
+		if entry, ok := components.MaterialMarket.First(m.World); ok {
+			mkt := components.MaterialMarket.Get(entry)
+			mkt.Sells = orders
+			components.MaterialMarket.Set(entry, mkt)
+		}
+	case "components":
+		orders := []components.Order[components.Component]{}
+		if err := json.Unmarshal(msg.Payload(), &orders); err != nil {
+			return //todo handle errors better
+		}
+		if entry, ok := components.ComponentMarket.First(m.World); ok {
+			mkt := components.ComponentMarket.Get(entry)
+			mkt.Sells = orders
+			components.ComponentMarket.Set(entry, mkt)
+		}
+	}
+}
+
 func (m *markets) MarketsEmployeesEventHandler(client mqtt.Client, msg mqtt.Message) {
 	employees := []components.EmployeeData{}
 	if err := json.Unmarshal(msg.Payload(), &employees); err != nil {
@@ -49,59 +99,6 @@ func (m *markets) MarketsEmployeesEventHandler(client mqtt.Client, msg mqtt.Mess
 			SourceID: "system",
 			Message:  "Employee market refreshed",
 		})
-	}
-}
-
-func (m *markets) MarketsComponentsEventHandler(client mqtt.Client, msg mqtt.Message) {
-	if entry, ok := components.ComponentMarket.First(m.World); ok {
-		items := []components.Order[components.Component]{}
-		if err := json.Unmarshal(msg.Payload(), &items); err != nil {
-			return //todo handle errors better
-		}
-		var userID string
-		if userentry, ok := components.UserProfile.First(m.World); ok {
-			profile := components.UserProfile.Get(userentry)
-			userID = profile.ID
-		}
-
-		market := components.ComponentMarket.Get(entry)
-		//filter the current users sells out of the buys
-		items = lo.Filter(items, func(order components.Order[components.Component], _ int) bool {
-			return order.OwnerID != userID
-		})
-
-		buys := lo.Filter(items, func(order components.Order[components.Component], _ int) bool {
-			return order.Type == components.Buy
-		})
-		market.Buys = buys
-		components.ComponentMarket.Set(entry, market)
-	}
-}
-
-func (m *markets) MarketsMaterialsEventHandler(client mqtt.Client, msg mqtt.Message) {
-	if entry, ok := components.MaterialMarket.First(m.World); ok {
-		items := []components.Order[components.Material]{}
-		if err := json.Unmarshal(msg.Payload(), &items); err != nil {
-			return //todo handle errors better
-		}
-		var userID string
-		if userentry, ok := components.UserProfile.First(m.World); ok {
-			profile := components.UserProfile.Get(userentry)
-			userID = profile.ID
-		}
-
-		market := components.MaterialMarket.Get(entry)
-		//filter the current users sells out of the buys
-		items = lo.Filter(items, func(order components.Order[components.Material], _ int) bool {
-			return order.OwnerID != userID
-		})
-
-		buys := lo.Filter(items, func(order components.Order[components.Material], _ int) bool {
-			return order.Type == components.Buy
-		})
-
-		market.Buys = buys
-		components.MaterialMarket.Set(entry, market)
 	}
 }
 

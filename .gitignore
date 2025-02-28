@@ -27,3 +27,6 @@ go.work.sum
 .DS_Store
 
 .vscode
+*_hook*
+*_cache*
+__debug*

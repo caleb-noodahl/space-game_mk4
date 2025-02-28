@@ -49,6 +49,9 @@ func (g *Game) init() {
 		Sells: []components.Order[components.EmployeeData]{},
 	})
 
+	components.ComponentMarket.Set(g.ecs.World.Entry(g.ecs.World.Create(components.ComponentMarket)), &components.MarketData[components.Component]{})
+	components.MaterialMarket.Set(g.ecs.World.Entry(g.ecs.World.Create(components.MaterialMarket)), &components.MarketData[components.Material]{})
+
 	//ui (currently debugui)
 	g.ecs.World.Create(components.UserInterface)
 	ux := components.NewUserInterface(debugui.New())
