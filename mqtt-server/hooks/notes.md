@@ -1,11 +1,9 @@
 
-# auth
-
-authentication consists of taking in a username/password and generating a 
+# auth flow 
 
 ```mermaid
 sequenceDiagram
-rect rgba(0, 0, 255, .1)
+rect rgba(255, 255, 255, 0.1)
 participant game
 participant server
 participant pdb
@@ -14,7 +12,7 @@ server --> pdb: on connect - get profile record by username key
 server ->> pdb: update user's client id
 note right of pdb: the server doesn't publish<br>anything back to the client here
 end
-rect rgba(0, 0, 255, .1)
+rect rgba(255, 255, 255, 0.1)
 server -->> game: pub topic profiles/[username]<br>profile{mqtt_client_id}
 game -->> server: sub topic gamestate/[mqtt_client_id]
 game ->> server: pub gamestate/fetch <br>body: {mqtt_client_id,user_id}

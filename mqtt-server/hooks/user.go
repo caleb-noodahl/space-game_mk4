@@ -63,6 +63,8 @@ func (h *UserHook) ProfileQueryCallback(cl *mqtt.Client, sub packets.Subscriptio
 	userbytes, closer, err := h.config.DB.Get([]byte(username))
 	if err != nil {
 		if errors.Is(err, pebble.ErrNotFound) {
+			h.config.Server.Log.Warn("no user profile found ", username, err)
+			return
 		}
 	} else {
 		closer.Close()
