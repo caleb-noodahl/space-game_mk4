@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image"
 	"space-game_mk4/game/components"
+	"strings"
 
 	"github.com/Rhymond/go-money"
 	"github.com/ebitengine/debugui"
@@ -12,6 +13,7 @@ import (
 
 type marketsVM struct {
 	cmpSearch string
+	mktSearch string
 }
 
 var MarketsVM = &marketsVM{}
@@ -43,10 +45,14 @@ func (m *marketsVM) EmployeeMarket(ctx *debugui.Context, w donburi.World) {
 }
 
 func (m *marketsVM) MarketsSummary(ctx *debugui.Context, w donburi.World) {
-	ctx.Window("Markets", image.Rect(40, 240, 560, 560), func(res debugui.Response, layout debugui.Layout) {
+	ctx.Window("Markets", image.Rect(40, 240, 720, 560), func(res debugui.Response, layout debugui.Layout) {
 		if entry, ok := components.MaterialMarket.First(w); ok {
+
 			mkt := components.MaterialMarket.Get(entry)
 			if ctx.Header("Materials", false) != 0 {
+				ctx.SetLayoutRow([]int{60, -1}, 20)
+				ctx.Label("filter")
+				ctx.TextBox(&m.mktSearch)
 				ctx.TreeNode("Buys", func(res debugui.Response) {
 					ctx.SetLayoutRow([]int{128, 64, 128, 128, 40}, 20)
 					ctx.Label("name")
@@ -55,12 +61,14 @@ func (m *marketsVM) MarketsSummary(ctx *debugui.Context, w donburi.World) {
 					ctx.Label("total")
 					ctx.Label("")
 					for _, o := range mkt.Buys {
-						ctx.Label(string(o.Item))
-						ctx.Label(fmt.Sprintf("%v", o.Amount))
-						ctx.Label(money.New(o.Price, money.USD).Display())
-						ctx.Label(money.New(o.Price*o.Amount, money.USD).Display())
-						if ctx.Button("fill\x00"+o.ID) != 0 {
-							components.MarketsMaterialsSellEvent.Publish(w, o)
+						if strings.Contains(string(o.Item), m.mktSearch) {
+							ctx.Label(string(o.Item))
+							ctx.Label(fmt.Sprintf("%v", o.Amount))
+							ctx.Label(money.New(o.Price, money.USD).Display())
+							ctx.Label(money.New(o.Price*o.Amount, money.USD).Display())
+							if ctx.Button("fill\x00"+o.ID) != 0 {
+								components.MarketsMaterialsSellEvent.Publish(w, o)
+							}
 						}
 					}
 				})
@@ -73,13 +81,16 @@ func (m *marketsVM) MarketsSummary(ctx *debugui.Context, w donburi.World) {
 					ctx.Label("total")
 					ctx.Label("")
 					for _, o := range mkt.Sells {
-						ctx.Label(string(o.Item))
-						ctx.Label(fmt.Sprintf("%v", o.Amount))
-						ctx.Label(money.New(o.Price, money.USD).Display())
-						ctx.Label(money.New(o.Price*o.Amount, money.USD).Display())
-						if ctx.Button("buy\x00"+o.ID) != 0 {
-							components.MarketsMaterialsBuyEvent.Publish(w, o)
+						if strings.Contains(string(o.Item), m.mktSearch) {
+							ctx.Label(string(o.Item))
+							ctx.Label(fmt.Sprintf("%v", o.Amount))
+							ctx.Label(money.New(o.Price, money.USD).Display())
+							ctx.Label(money.New(o.Price*o.Amount, money.USD).Display())
+							if ctx.Button("buy\x00"+o.ID) != 0 {
+								components.MarketsMaterialsBuyEvent.Publish(w, o)
+							}
 						}
+
 					}
 				})
 			}
@@ -87,6 +98,9 @@ func (m *marketsVM) MarketsSummary(ctx *debugui.Context, w donburi.World) {
 		if entry, ok := components.ComponentMarket.First(w); ok {
 			mkt := components.ComponentMarket.Get(entry)
 			if ctx.Header("Components", false) != 0 {
+				ctx.SetLayoutRow([]int{60, -1}, 20)
+				ctx.Label("filter")
+				ctx.TextBox(&m.cmpSearch)
 				ctx.TreeNode("Buys", func(res debugui.Response) {
 					ctx.SetLayoutRow([]int{128, 64, 128, 128, 40}, 20)
 					ctx.Label("name")
@@ -95,12 +109,14 @@ func (m *marketsVM) MarketsSummary(ctx *debugui.Context, w donburi.World) {
 					ctx.Label("total")
 					ctx.Label("")
 					for _, o := range mkt.Buys {
-						ctx.Label(o.Item.Name)
-						ctx.Label(fmt.Sprintf("%v", o.Amount))
-						ctx.Label(money.New(o.Price, money.USD).Display())
-						ctx.Label(money.New(o.Price*o.Amount, money.USD).Display())
-						if ctx.Button("fill\x00"+o.ID) != 0 {
-							components.MarketsComponentsSellEvent.Publish(w, o)
+						if strings.Contains(o.Item.Name, m.cmpSearch) {
+							ctx.Label(o.Item.Name)
+							ctx.Label(fmt.Sprintf("%v", o.Amount))
+							ctx.Label(money.New(o.Price, money.USD).Display())
+							ctx.Label(money.New(o.Price*o.Amount, money.USD).Display())
+							if ctx.Button("fill\x00"+o.ID) != 0 {
+								components.MarketsComponentsSellEvent.Publish(w, o)
+							}
 						}
 					}
 				})
@@ -113,12 +129,14 @@ func (m *marketsVM) MarketsSummary(ctx *debugui.Context, w donburi.World) {
 					ctx.Label("total")
 					ctx.Label("")
 					for _, o := range mkt.Sells {
-						ctx.Label(o.Item.Name)
-						ctx.Label(fmt.Sprintf("%v", o.Amount))
-						ctx.Label(money.New(o.Price, money.USD).Display())
-						ctx.Label(money.New(o.Price*o.Amount, money.USD).Display())
-						if ctx.Button("buy\x00"+o.ID) != 0 {
-							components.MarketsComponentsBuyEvent.Publish(w, o)
+						if strings.Contains(o.Item.Name, m.cmpSearch) {
+							ctx.Label(o.Item.Name)
+							ctx.Label(fmt.Sprintf("%v", o.Amount))
+							ctx.Label(money.New(o.Price, money.USD).Display())
+							ctx.Label(money.New(o.Price*o.Amount, money.USD).Display())
+							if ctx.Button("buy\x00"+o.ID) != 0 {
+								components.MarketsComponentsBuyEvent.Publish(w, o)
+							}
 						}
 					}
 				})
