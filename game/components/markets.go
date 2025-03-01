@@ -2,6 +2,7 @@ package components
 
 import (
 	"github.com/yohamta/donburi"
+	"github.com/yohamta/donburi/features/events"
 )
 
 type Material string
@@ -38,3 +39,9 @@ var MarketTag = donburi.NewTag("Market")
 var EmployeeMarket = donburi.NewComponentType[MarketData[EmployeeData]]()
 var ComponentMarket = donburi.NewComponentType[MarketData[Component]]()
 var MaterialMarket = donburi.NewComponentType[MarketData[Material]]()
+
+var MarketsMaterialsBuyEvent = events.NewEventType[Order[Material]]()
+var MarketsMaterialsSellEvent = events.NewEventType[Order[Material]]()
+
+var MarketsComponentsBuyEvent = events.NewEventType[Order[Component]]()
+var MarketsComponentsSellEvent = events.NewEventType[Order[Component]]()

@@ -1,16 +1,15 @@
 package components
 
 const (
-	Carbon    Material = "carbon"
-	CO2       Material = "co2"
-	Oxygen    Material = "oxygen"
-	Water     Material = "water"
-	Silicon   Material = "silicon"
-	Zeolite   Material = "zeolite"
-	Nanofiber Material = "nanofiber"
-	Iron      Material = "iron"
-	Titanium  Material = "titanium"
-
+	Carbon     Material = "carbon"
+	CO2        Material = "co2"
+	Oxygen     Material = "oxygen"
+	Water      Material = "water"
+	Silicon    Material = "silicon"
+	Nanofiber  Material = "nanofiber"
+	Iron       Material = "iron"
+	Titanium   Material = "titanium"
+	Zeolite    Material = "zeolite"
 	SteelPanel Material = "steel panel"
 
 	SolarPanel          Material = "solar panel"
@@ -19,6 +18,19 @@ const (
 	NanofiberInsulation Material = "nanofiber insulation"
 	TitaniumAlloy       Material = "titanium alloy"
 )
+
+func AllMaterials() []Material {
+	return []Material{
+		Carbon,
+		CO2,
+		Oxygen,
+		Water,
+		Silicon,
+		Nanofiber,
+		Iron,
+		Titanium,
+	}
+}
 
 type Storage[T Material | Component] struct {
 	Contents T   `json:"contents"`
@@ -78,3 +90,13 @@ var (
 		},
 	}
 )
+
+func AllComponents() []Component {
+	return []Component{
+		CO2Scrubber,
+		OxygenGenerator,
+		WaterRecyclingSystem,
+		ReinforcedHullPanel,
+		SolarArray,
+	}
+}

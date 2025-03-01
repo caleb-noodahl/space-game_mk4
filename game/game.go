@@ -44,11 +44,7 @@ func (g *Game) init() {
 	components.Feed.Set(g.ecs.World.Entry(user), new(components.FeedData))
 	components.Quests.Set(g.ecs.World.Entry(user), &components.QuestData{})
 
-	components.EmployeeMarket.Set(g.ecs.World.Entry(g.ecs.World.Create(components.EmployeeMarket)), &components.MarketData[components.EmployeeData]{
-		Buys:  []components.Order[components.EmployeeData]{},
-		Sells: []components.Order[components.EmployeeData]{},
-	})
-
+	components.EmployeeMarket.Set(g.ecs.World.Entry(g.ecs.World.Create(components.EmployeeMarket)), &components.MarketData[components.EmployeeData]{})
 	components.ComponentMarket.Set(g.ecs.World.Entry(g.ecs.World.Create(components.ComponentMarket)), &components.MarketData[components.Component]{})
 	components.MaterialMarket.Set(g.ecs.World.Entry(g.ecs.World.Create(components.MaterialMarket)), &components.MarketData[components.Material]{})
 
@@ -67,13 +63,17 @@ func (g *Game) init() {
 	components.MachineShopCreateEvent.Subscribe(g.ecs.World, systems.Facility.MachineShopCreateEventHandler)
 	components.DockCreateEvent.Subscribe(g.ecs.World, systems.Facility.DockCreateEventHandler)
 	components.GameStatePublish.Subscribe(g.ecs.World, systems.GameState.GameStatePublishEvent)
+	// employees market was a first pass - todo refactor
 	components.EmployeeMarketBuyEvent.Subscribe(g.ecs.World, systems.Markets.MarketsEmployeesBuyHandler)
 	components.EmployeeMarketSellEvent.Subscribe(g.ecs.World, systems.Markets.MarketsEmployeeSellHandler)
+	//generic market event handlers
+
 	components.TaskCreateEvent.Subscribe(g.ecs.World, systems.Task.TaskCreateEventHandler)
 	components.StationFeedEvent.Subscribe(g.ecs.World, systems.Feed.StationFeedEventHandler)
 	components.UserFeedEvent.Subscribe(g.ecs.World, systems.Feed.UserFeedEventHandler)
 	components.ResearchStartEvent.Subscribe(g.ecs.World, systems.Research.ResearchStartedHandler)
 	components.ResearchEndEvent.Subscribe(g.ecs.World, systems.Research.ResearchEndHandler)
+	
 
 	g.ecs.AddSystem(systems.GameState.Update)
 	g.ecs.AddSystem(systems.Render.Update)

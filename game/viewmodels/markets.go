@@ -10,7 +10,9 @@ import (
 	"github.com/yohamta/donburi"
 )
 
-type marketsVM struct{}
+type marketsVM struct {
+	cmpSearch string
+}
 
 var MarketsVM = &marketsVM{}
 
@@ -41,39 +43,86 @@ func (m *marketsVM) EmployeeMarket(ctx *debugui.Context, w donburi.World) {
 }
 
 func (m *marketsVM) MarketsSummary(ctx *debugui.Context, w donburi.World) {
-	ctx.Window("Market Summary", image.Rect(40, 240, 560, 560), func(res debugui.Response, layout debugui.Layout) {
-		if entry, ok := components.ComponentMarket.First(w); ok {
-			mkt := components.ComponentMarket.Get(entry)
-			ctx.SetLayoutRow([]int{128}, 20)
-			ctx.Label("Components Market")
-
-			ctx.SetLayoutRow([]int{64, 128, 64, 128}, 20)
-			ctx.Label("Buys")
-			ctx.Label(fmt.Sprintf("%v", len(mkt.Buys)))
-			ctx.Label("Sells")
-			ctx.Label(fmt.Sprintf("%v", len(mkt.Sells)))
-		}
+	ctx.Window("Markets", image.Rect(40, 240, 560, 560), func(res debugui.Response, layout debugui.Layout) {
 		if entry, ok := components.MaterialMarket.First(w); ok {
 			mkt := components.MaterialMarket.Get(entry)
-			ctx.SetLayoutRow([]int{128}, 20)
-			ctx.Label("Materials Market")
+			if ctx.Header("Materials", false) != 0 {
+				ctx.TreeNode("Buys", func(res debugui.Response) {
+					ctx.SetLayoutRow([]int{128, 64, 128, 128, 40}, 20)
+					ctx.Label("name")
+					ctx.Label("amount")
+					ctx.Label("price")
+					ctx.Label("total")
+					ctx.Label("")
+					for _, o := range mkt.Buys {
+						ctx.Label(string(o.Item))
+						ctx.Label(fmt.Sprintf("%v", o.Amount))
+						ctx.Label(money.New(o.Price, money.USD).Display())
+						ctx.Label(money.New(o.Price*o.Amount, money.USD).Display())
+						if ctx.Button("fill\x00"+o.ID) != 0 {
+							components.MarketsMaterialsSellEvent.Publish(w, o)
+						}
+					}
+				})
 
-			ctx.SetLayoutRow([]int{64, 128, 64, 128}, 20)
-			ctx.Label("Buys")
-			ctx.Label(fmt.Sprintf("%v", len(mkt.Buys)))
-
-			ctx.TreeNode("Sells", func(res debugui.Response) {
-				ctx.SetLayoutRow([]int{64, 64, 128}, 20)
-				ctx.Label("Name")
-				ctx.Label("Amount")
-				ctx.Label("Price Per")
-				for _, sell := range mkt.Sells {
-					ctx.Label(string(sell.Item))
-					ctx.Label(fmt.Sprintf("%v", sell.Amount))
-					ctx.Label(fmt.Sprintf("%v", money.New(sell.Price, money.USD).Display()))
-				}
-			})
+				ctx.TreeNode("Sells", func(res debugui.Response) {
+					ctx.SetLayoutRow([]int{128, 64, 128, 128, 40}, 20)
+					ctx.Label("name")
+					ctx.Label("amount")
+					ctx.Label("price")
+					ctx.Label("total")
+					ctx.Label("")
+					for _, o := range mkt.Sells {
+						ctx.Label(string(o.Item))
+						ctx.Label(fmt.Sprintf("%v", o.Amount))
+						ctx.Label(money.New(o.Price, money.USD).Display())
+						ctx.Label(money.New(o.Price*o.Amount, money.USD).Display())
+						if ctx.Button("buy\x00"+o.ID) != 0 {
+							components.MarketsMaterialsBuyEvent.Publish(w, o)
+						}
+					}
+				})
+			}
 		}
+		if entry, ok := components.ComponentMarket.First(w); ok {
+			mkt := components.ComponentMarket.Get(entry)
+			if ctx.Header("Components", false) != 0 {
+				ctx.TreeNode("Buys", func(res debugui.Response) {
+					ctx.SetLayoutRow([]int{128, 64, 128, 128, 40}, 20)
+					ctx.Label("name")
+					ctx.Label("amount")
+					ctx.Label("price")
+					ctx.Label("total")
+					ctx.Label("")
+					for _, o := range mkt.Buys {
+						ctx.Label(o.Item.Name)
+						ctx.Label(fmt.Sprintf("%v", o.Amount))
+						ctx.Label(money.New(o.Price, money.USD).Display())
+						ctx.Label(money.New(o.Price*o.Amount, money.USD).Display())
+						if ctx.Button("fill\x00"+o.ID) != 0 {
+							components.MarketsComponentsSellEvent.Publish(w, o)
+						}
+					}
+				})
 
+				ctx.TreeNode("Sells", func(res debugui.Response) {
+					ctx.SetLayoutRow([]int{128, 64, 128, 128, 40}, 20)
+					ctx.Label("name")
+					ctx.Label("amount")
+					ctx.Label("price")
+					ctx.Label("total")
+					ctx.Label("")
+					for _, o := range mkt.Sells {
+						ctx.Label(o.Item.Name)
+						ctx.Label(fmt.Sprintf("%v", o.Amount))
+						ctx.Label(money.New(o.Price, money.USD).Display())
+						ctx.Label(money.New(o.Price*o.Amount, money.USD).Display())
+						if ctx.Button("buy\x00"+o.ID) != 0 {
+							components.MarketsComponentsBuyEvent.Publish(w, o)
+						}
+					}
+				})
+			}
+		}
 	})
 }

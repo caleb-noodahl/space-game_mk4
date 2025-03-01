@@ -1,12 +1,9 @@
 package components
 
 import (
-	"image"
-
 	"github.com/ebitengine/debugui"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/yohamta/donburi"
-	"github.com/yohamta/donburi/features/events"
 )
 
 type UXSceneData struct {
@@ -27,23 +24,6 @@ func (u *UserInterfaceData) Draw(screen *ebiten.Image) {
 	u.DBUI.Draw(screen)
 }
 
-type NotificationEventData struct {
-	ID       string `json:"id"`
-	Title    string `json:"title"`
-	Message  string `json:"msg"`
-	Created  int64  `json:"created"`
-	Reviewed int64  `json:"reviewed"`
-	Ctx      *debugui.Context
-}
-
-func (u *UserInterfaceData) NotificationHandler(w donburi.World, notif NotificationEventData) {
-	if _, ok := UserInterface.First(w); ok {
-		notif.Ctx.Window("Notification", image.Rect(40, 240, 560, 560), func(res debugui.Response, layout debugui.Layout) {
-
-		})
-	}
-}
-
 func (u *UserInterfaceData) SetContentValue(key, val string) {
 	u.Content[key] = val
 }
@@ -60,4 +40,3 @@ func NewUserInterface(dbui *debugui.DebugUI) *UserInterfaceData {
 }
 
 var UserInterface = donburi.NewComponentType[UserInterfaceData]()
-var NotificationEvent = events.NewEventType[NotificationEventData]()
