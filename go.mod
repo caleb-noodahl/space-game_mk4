@@ -5,7 +5,7 @@ go 1.23.0
 require (
 	github.com/Rhymond/go-money v1.0.14
 	github.com/cockroachdb/pebble v1.1.4
-	github.com/ebitengine/debugui v0.0.0-20241116042544-7eae500d7fed
+	github.com/ebitenui/ebitenui v0.6.0
 	github.com/eclipse/paho.mqtt.golang v1.5.0
 	github.com/google/uuid v1.6.0
 	github.com/hajimehoshi/ebiten/v2 v2.8.6
@@ -34,14 +34,12 @@ require (
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
-	github.com/hajimehoshi/bitmapfont/v3 v3.2.0 // indirect
 	github.com/jezek/xgb v1.1.1 // indirect
 	github.com/klauspost/compress v1.16.0 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/mattn/go-runewidth v0.0.9 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369 // indirect
-	github.com/pierrec/lz4/v4 v4.1.21 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/client_golang v1.12.0 // indirect
 	github.com/prometheus/client_model v0.2.1-0.20210607210712-147c58e9608a // indirect

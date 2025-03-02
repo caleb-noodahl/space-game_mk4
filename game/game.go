@@ -5,9 +5,9 @@ import (
 	"space-game_mk4/game/components"
 	"space-game_mk4/game/systems"
 	"space-game_mk4/game/viewmodels"
+
 	"sync"
 
-	"github.com/ebitengine/debugui"
 	"github.com/hajimehoshi/ebiten/v2"
 
 	"github.com/yohamta/donburi"
@@ -32,11 +32,8 @@ func NewGame(width, height int) *Game {
 }
 func (g *Game) init() {
 	g.ecs.World = donburi.NewWorld()
-	viewmodels.LoginVM.World = g.ecs.World   //anti-pattern
-	viewmodels.ProfileVM.World = g.ecs.World //anti-pattern
-	viewmodels.StationVM.World = g.ecs.World //anti-pattern
-	systems.GameState.World = g.ecs.World    //anti-pattern
-	systems.Markets.World = g.ecs.World      //anti-pattern
+	systems.GameState.World = g.ecs.World //anti-pattern
+	systems.Markets.World = g.ecs.World   //anti-pattern
 
 	user := g.ecs.World.Create(components.UserProfile, components.Wallet, components.Feed, components.Quests, components.XP)
 	components.UserProfile.Set(g.ecs.World.Entry(user), new(components.UserProfileData))
@@ -48,9 +45,8 @@ func (g *Game) init() {
 	components.ComponentMarket.Set(g.ecs.World.Entry(g.ecs.World.Create(components.ComponentMarket)), &components.MarketData[components.Component]{})
 	components.MaterialMarket.Set(g.ecs.World.Entry(g.ecs.World.Create(components.MaterialMarket)), &components.MarketData[components.Material]{})
 
-	//ui (currently debugui)
 	g.ecs.World.Create(components.UserInterface)
-	ux := components.NewUserInterface(debugui.New())
+	ux := components.NewUserInterface()
 	components.UserInterface.Set(components.UserInterface.MustFirst(g.ecs.World), ux)
 
 	g.ecs.World.Create(components.ServerTime)
@@ -73,11 +69,10 @@ func (g *Game) init() {
 	components.UserFeedEvent.Subscribe(g.ecs.World, systems.Feed.UserFeedEventHandler)
 	components.ResearchStartEvent.Subscribe(g.ecs.World, systems.Research.ResearchStartedHandler)
 	components.ResearchEndEvent.Subscribe(g.ecs.World, systems.Research.ResearchEndHandler)
-	
 
 	g.ecs.AddSystem(systems.GameState.Update)
 	g.ecs.AddSystem(systems.Render.Update)
-	g.ecs.AddSystem(systems.UX.Update)
+	g.ecs.AddSystem(systems.UI.Update)
 	g.ecs.AddSystem(systems.AUTH.Update)
 	g.ecs.AddSystem(systems.Station.Update)
 	g.ecs.AddSystem(systems.Env.Update)
@@ -87,7 +82,9 @@ func (g *Game) init() {
 	g.ecs.AddSystem(systems.Markets.Update)
 	g.ecs.AddSystem(systems.Task.Update)
 	g.ecs.AddSystem(systems.Quests.Update)
-	g.ecs.AddRenderer(0, systems.Render.DrawUI)
+	g.ecs.AddSystem(viewmodels.LoginVM.Update)
+
+	g.ecs.AddRenderer(0, systems.UI.Draw)
 }
 
 func (g *Game) Update() error {
