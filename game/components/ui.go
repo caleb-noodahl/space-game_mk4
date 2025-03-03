@@ -59,19 +59,22 @@ func NewUserInterface() *UserInterfaceData {
 
 	digitalFace := &text.GoTextFace{
 		Source: digital,
-		Size:   12,
+		Size:   16,
 	}
 
 	txtFace := &text.GoTextFace{
 		Source: txt,
-		Size:   12,
+		Size:   14,
 	}
 
 	eui := &ebitenui.UI{
 		Container: widget.NewContainer(
 			widget.ContainerOpts.WidgetOpts(),
+			// the container will use an anchor layout to layout its single child widget
+			widget.ContainerOpts.BackgroundImage(
+				image.NewNineSliceColor(color.RGBA{R: 10, G: 10, B: 50, A: 250}),
+			),
 			// the container will use a plain color as its background
-			widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{0x13, 0x1a, 0x22, 250})),
 			// the container will use an anchor layout to layout its single child widget
 			widget.ContainerOpts.Layout(widget.NewAnchorLayout(
 				widget.AnchorLayoutOpts.Padding(widget.NewInsetsSimple(5)),

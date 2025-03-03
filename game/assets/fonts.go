@@ -9,7 +9,7 @@ import (
 var fonts embed.FS
 
 func LoadDigital() []byte {
-	content, err := fs.ReadFile(fonts, "fonts/scp.ttf")
+	content, err := fs.ReadFile(fonts, "fonts/d7.ttf")
 	if err != nil {
 		panic(err)
 	}
@@ -17,7 +17,7 @@ func LoadDigital() []byte {
 }
 
 func LoadText() []byte {
-	content, err := fs.ReadFile(fonts, "fonts/dogica.ttf")
+	content, err := fs.ReadFile(fonts, "fonts/ptm.ttf")
 	if err != nil {
 		panic(err)
 	}

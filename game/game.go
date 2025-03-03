@@ -34,6 +34,9 @@ func (g *Game) init() {
 	g.ecs.World = donburi.NewWorld()
 	systems.GameState.World = g.ecs.World //anti-pattern
 	systems.Markets.World = g.ecs.World   //anti-pattern
+	viewmodels.LoginVM.World = g.ecs.World
+	viewmodels.ProfileVM.World = g.ecs.World
+	viewmodels.StationSetupVM.World = g.ecs.World
 
 	user := g.ecs.World.Create(components.UserProfile, components.Wallet, components.Feed, components.Quests, components.XP)
 	components.UserProfile.Set(g.ecs.World.Entry(user), new(components.UserProfileData))
@@ -82,7 +85,8 @@ func (g *Game) init() {
 	g.ecs.AddSystem(systems.Markets.Update)
 	g.ecs.AddSystem(systems.Task.Update)
 	g.ecs.AddSystem(systems.Quests.Update)
-	g.ecs.AddSystem(viewmodels.LoginVM.Update)
+
+	g.ecs.AddSystem(viewmodels.VM.Update)
 
 	g.ecs.AddRenderer(0, systems.UI.Draw)
 }
